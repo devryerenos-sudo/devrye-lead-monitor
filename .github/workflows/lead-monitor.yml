@@ -1,0 +1,39 @@
+name: DeVrye Lead Monitor
+
+on:
+  schedule:
+    - cron: "0 13,17,22 * * *"   # 8am, 12pm, 5pm Eastern (UTC-5)
+  workflow_dispatch:               # also allows manual trigger from GitHub UI
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run lead monitor
+        env:
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN:  ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_FROM:        ${{ secrets.TWILIO_FROM }}
+          ALERT_NUMBER:       ${{ secrets.ALERT_NUMBER }}
+        run: node devrye-lead-monitor.js
+
+      - name: Save seen.json back to repo
+        run: |
+          git config user.name  "DeVrye Lead Bot"
+          git config user.email "bot@devrye.com"
+          git add seen.json
+          git diff --staged --quiet || git commit -m "chore: update seen leads [skip ci]"
+          git push
