@@ -1,0 +1,14 @@
+{
+  "name": "devrye-lead-monitor",
+  "version": "1.0.0",
+  "description": "Renovation lead monitor for DeVrye Renovations",
+  "main": "devrye-lead-monitor.js",
+  "scripts": {
+    "start": "node devrye-lead-monitor.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0",
+    "twilio": "^5.0.0"
+  }
+}
