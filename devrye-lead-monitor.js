@@ -275,45 +275,22 @@ async function searchCraigslist(seen) {
 async function sendSms(newLeads) {
   const { accountSid, authToken, fromNumber, alertNumbers, minLeadsToAlert } = CONFIG.twilio;
   if (newLeads.length < minLeadsToAlert) return;
-  if (!accountSid || !authToken || !fromNumber) {
-    console.log("[SMS] Twilio env vars not set.");
-    return;
-  }
-
+  if (!accountSid || !authToken || !fromNumber) { console.log("[SMS] Twilio env vars not set."); return; }
   const client = twilio(accountSid, authToken);
-  const MAX_SMS_LEN = 1600;
-  const header = `DeVrye Lead Alert: ${newLeads.length} new lead${newLeads.length > 1 ? "s" : ""}.\n\n`;
-  let body = header;
-  let truncated = 0;
-
+  const MAX_LEN = 300;
+  let body = `DeVrye Lead Alert: ${newLeads.length} new lead${newLeads.length > 1 ? "s" : ""}\n`;
   for (let i = 0; i < newLeads.length; i++) {
-    const lead = newLeads[i];
-    const entry = `${i + 1}. [${lead.source}] ${lead.title}\n   ${lead.url}\n`;
-    const moreMsg = `... and ${newLeads.length - i} more`;
-    if (body.length + entry.length + moreMsg.length > MAX_SMS_LEN) {
-      truncated = newLeads.length - i;
-      break;
-    }
+    const entry = `${i+1}. [${newLeads[i].source}] ${newLeads[i].title}\n`;
+    if (body.length + entry.length > MAX_LEN) { body += `...+${newLeads.length - i} more`; break; }
     body += entry;
   }
-
-  if (truncated > 0) {
-    body += `... and ${truncated} more`;
-  }
-
   for (const to of alertNumbers) {
     try {
       const msg = await client.messages.create({ body, from: fromNumber, to });
       console.log(`[SMS] Sent to ${to} - ${msg.sid}`);
-    } catch (err) {
-      console.error(`[SMS] Failed: ${err.message}`);
-    }
+    } catch (err) { console.error(`[SMS] Failed: ${err.message}`); }
   }
 }
-
-/* ------------------------------------------------------------------ */
-/*  Main                                                               */
-/* ------------------------------------------------------------------ */
 async function main() {
   console.log("[DeVrye Lead Monitor] Starting...");
   const seen = loadSeen();
