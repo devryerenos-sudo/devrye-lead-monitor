@@ -117,7 +117,7 @@ async function searchReddit(seen) {
       try {
         const url = `https://www.reddit.com/r/${sub}/search.json?q=${encodeURIComponent(keyword)}&restrict_sr=1&sort=new&limit=25&t=week`;
         const res = await axios.get(url, {
-          headers: { "User-Agent": "DeVryeLeadBot/1.0 (internal business tool)" },
+          headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36" },
           timeout: 10000
         });
         for (const { data: post } of res.data?.data?.children || []) {
