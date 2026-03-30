@@ -67,7 +67,7 @@ const CONFIG = {
     keywords: ["renovation","kitchen","bathroom","basement","contractor","remodel","finishing"],
   },
   craigslist: {
-    urls: ["https://kitchener.craigslist.org/search/hss"],
+    urls: [],
     searchUrls: ["https://kitchener.craigslist.org/search/sss?query=renovation+contractor","https://kitchener.craigslist.org/search/sss?query=kitchen+reno","https://kitchener.craigslist.org/search/sss?query=basement+finishing"],
     keywords: ["renovation","contractor","kitchen","bathroom","basement","reno","remodel","quote","looking for"],
   },
