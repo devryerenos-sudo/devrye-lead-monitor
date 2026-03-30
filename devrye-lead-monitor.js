@@ -277,13 +277,8 @@ async function sendSms(newLeads) {
   if (newLeads.length < minLeadsToAlert) return;
   if (!accountSid || !authToken || !fromNumber) { console.log("[SMS] Twilio env vars not set."); return; }
   const client = twilio(accountSid, authToken);
-  const MAX_LEN = 300;
-  let body = `DeVrye Lead Alert: ${newLeads.length} new lead${newLeads.length > 1 ? "s" : ""}\n`;
-  for (let i = 0; i < newLeads.length; i++) {
-    const entry = `${i+1}. [${newLeads[i].source}] ${newLeads[i].title}\n`;
-    if (body.length + entry.length > MAX_LEN) { body += `...+${newLeads.length - i} more`; break; }
-    body += entry;
-  }
+  let body = `DeVrye Lead Alert: ${newLeads.length} new lead${newLeads.length > 1 ? "s" : ""}\n\n`;
+  for (const lead of newLeads) { body += lead.url + `\n`; }
   for (const to of alertNumbers) {
     try {
       const msg = await client.messages.create({ body, from: fromNumber, to });
