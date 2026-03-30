@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * DeVrye Renovations — Lead Monitor
+ * DeVrye Renovations â Lead Monitor
  * Deployment: GitHub Actions (runs 3x/day, free)
  * State:      seen.json (committed back to repo after each run)
  * Alerts:     Twilio SMS
@@ -9,8 +9,8 @@
  * Required env vars (set in GitHub repo Settings > Secrets > Actions):
  *   TWILIO_ACCOUNT_SID
  *   TWILIO_AUTH_TOKEN
- *   TWILIO_FROM       — your Twilio phone number  e.g. +15191234567
- *   ALERT_NUMBER       — your cell phone           e.g. +15191234567
+ *   TWILIO_FROM       â your Twilio phone number  e.g. +15191234567
+ *   ALERT_NUMBER       â your cell phone           e.g. +15191234567
  */
 
 const axios   = require("axios");
@@ -33,7 +33,7 @@ const NEGATIVE_KEYWORDS = [
 
 /**
  * Returns true if the text contains any negative keyword.
- * Call this before adding a lead — if it returns true, skip the lead.
+ * Call this before adding a lead â if it returns true, skip the lead.
  */
 function hasNegativeKeyword(text) {
   const lower = text.toLowerCase();
@@ -275,12 +275,32 @@ async function searchCraigslist(seen) {
 async function sendSms(newLeads) {
   const { accountSid, authToken, fromNumber, alertNumbers, minLeadsToAlert } = CONFIG.twilio;
   if (newLeads.length < minLeadsToAlert) return;
-  if (!accountSid || !authToken || !fromNumber) { console.log("[SMS] Twilio env vars not set."); return; }
+  if (!accountSid || !authToken || !fromNumber) {
+    console.log("[SMS] Twilio env vars not set.");
+    return;
+  }
+
   const client = twilio(accountSid, authToken);
-  const top = newLeads[0];
-  const body = `DeVrye Lead Alert: ${newLeads.length} new lead${newLeads.length > 1 ? "s" : ""}.
-[${top.source}] ${top.title}
-${top.url}`;
+  const MAX_SMS_LEN = 1600;
+  const header = `DeVrye Lead Alert: ${newLeads.length} new lead${newLeads.length > 1 ? "s" : ""}.\n\n`;
+  let body = header;
+  let truncated = 0;
+
+  for (let i = 0; i < newLeads.length; i++) {
+    const lead = newLeads[i];
+    const entry = `${i + 1}. [${lead.source}] ${lead.title}\n   ${lead.url}\n`;
+    const moreMsg = `... and ${newLeads.length - i} more`;
+    if (body.length + entry.length + moreMsg.length > MAX_SMS_LEN) {
+      truncated = newLeads.length - i;
+      break;
+    }
+    body += entry;
+  }
+
+  if (truncated > 0) {
+    body += `... and ${truncated} more`;
+  }
+
   for (const to of alertNumbers) {
     try {
       const msg = await client.messages.create({ body, from: fromNumber, to });
